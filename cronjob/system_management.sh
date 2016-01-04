@@ -10,4 +10,4 @@ then
    kill -9 $PROCESS
 fi
 
-python /home/humax/admin/cronjob/system_monitor.py http://10.0.218.196:5010/messages &
+python /home/humax/admin/cronjob/VMMonitor.py http://10.0.218.196:5010/messages &
