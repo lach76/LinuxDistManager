@@ -1,5 +1,8 @@
 {
     "psutil":{
         "description":"System Monitoring Utility"
+    },
+    "flask":{
+        "description":"Flask module"
     }
 }
