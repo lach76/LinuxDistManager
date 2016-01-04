@@ -3,8 +3,8 @@
 cd /home/humax/admin/initialize
 python init_system.py
 
-Cnt=`ps -ef|grep "system_monitor.py"|grep -v grep|wc -l`
-PROCESS=`ps -ef|grep "system_monitor.py"|grep -v grep|awk '{print $2}'`
+Cnt=`ps -ef|grep "VMMonitor.py"|grep -v grep|wc -l`
+PROCESS=`ps -ef|grep "VMMonitor.py"|grep -v grep|awk '{print $2}'`
 if [ $Cnt -ne 0 ]
 then
    kill -9 $PROCESS
