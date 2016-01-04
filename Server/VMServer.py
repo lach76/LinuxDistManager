@@ -19,7 +19,10 @@ def addVMtoManagedList(json):
     dist_name = ' '.join(json['machine'][:-1])
     dist_arch = json['machine'][-1]
     host_name = json['hostname']
-    template_name = json['template']
+    if json.has_key('template'):
+        template_name = json['template']
+    else:
+        template_name = "Undefined"
     ipaddr = json['network'][0]
     hwaddr = json['network'][1]
 
