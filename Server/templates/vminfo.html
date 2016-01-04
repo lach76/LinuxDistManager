@@ -1,0 +1,62 @@
+<html>
+    <style type="text/css">
+        .tg  {border-collapse:collapse;border-spacing:0;border-color:#aabcfe;}
+        .tg td{font-family:Arial, sans-serif;font-size:10px;padding:5px 5px;border-style:dashed;border-width:1px;overflow:hidden;word-break:normal;border-color:#aabcfe;color:#669;background-color:#e8edff;}
+        .tg th{font-family:Arial, sans-serif;font-size:12px;font-weight:normal;padding:5px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color: #769ffe;color:#039;background-color:#b9c9fe;}
+        .tg .tg-7geq{font-weight:bold;background-color:#ffffc7;text-align:center;vertical-align:middle}
+        .tg .tg-yw4l{vertical-align:middle;text-align:center;font-size:12px}
+        .tg .tg-col1{color:#039;background-color: #aabcfe;vertical-align:middle;font-weight:bold;text-align:center}
+    </style>
+
+    <head>
+        <title>{{ title }}</title>
+        <script>
+            setInterval(function() {
+                location.reload()
+            }, 60000);
+        </script>
+    </head>
+    <body>
+        <h2>{{ title }} Details</h2>
+
+        {% for user, value in users.iteritems() %}
+            <h3> User - [{{ user }}]</h3>
+            <table class="tg">
+            <tr>
+                <th class="tg-7geq">pid</th>
+                <th class="tg-7geq">cpu</th>
+                <th class="tg-7geq">memory</th>
+                <th class="tg-7geq">threads</th>
+                <th class="tg-7geq">status</th>
+                <th class="tg-7geq">process</th>
+                <th class="tg-7geq">created</th>
+            </tr>
+            {% for process in value %}
+                <tr>
+                    <td class="tg-yw4l">{{ process.pid }}</td>
+                    <td class="tg-yw4l">{{ process.cpu }} %</td>
+                    <td class="tg-yw4l">{{ process.memory }} MB</td>
+                    <td class="tg-yw4l">{{ process.thread }}</td>
+                    <td class="tg-yw4l">< {{ process.status }} ></td>
+                    <td class="tg-yw4l">{{ process.name }}</td>
+                    <td class="tg-yw4l">{{ process.created }}</td>
+                </tr>
+            {% endfor %}
+            </table>
+        {% endfor %}
+
+        <h3> Packages </h3>
+        <table class="tg">
+        <tr>
+            <th class="tg-7geq">Package Name</th>
+            <th class="tg-7geq">Version</th>
+        </tr>
+        {% for package in packagelist %}
+        <tr>
+            <td class="tg-yw4l">{{ package.name }}</td>
+            <td class="tg-yw4l">{{ package.version }}</td>
+        </tr>
+        {% endfor %}
+        </table>
+    </body>
+</html>

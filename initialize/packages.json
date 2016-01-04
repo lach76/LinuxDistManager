@@ -1,0 +1,39 @@
+{
+    "_package_name":{
+        "_name":"install package name",
+        "_version":"install package version",
+        "_distribution":[
+            {"_dist":"linux distribution name", "_version":"distribution version"}
+        ],
+        "_templates":[
+            "template name"
+        ]
+    },
+    "wine1.6":{
+        "name":"wine1.6",
+        "version":"1.6",
+        "distribution":[
+            {"dist":"ubuntu", "version":"12.04", "extra":["add-apt-repository -y ppa:ubuntu-wine/ppa", "apt-get update"]},
+            {"dist":"fedora"}
+        ],
+        "templates":[
+            "ubuntu1204"
+        ]
+    },
+    "bison":{
+        "name":"bison"
+    },
+    "flex":{
+        "name":"flex"
+    },
+    "python":{
+        "name":"python",
+        "version":"2.7"
+    },
+    "python-dev":{
+        "name":"python-dev"
+    },
+    "python-pip":{
+        "name":"python-pip"
+    }
+}

@@ -1,0 +1,5 @@
+VNCSERVERS="1:humax 11:kimjh 12:kimjh2 13:kimjh3 "
+VNCSERVERARGS[1]="-geometry 1600x900"
+VNCSERVERARGS[11]="-geometry 1600x900"
+VNCSERVERARGS[12]="-geometry 1600x900"
+VNCSERVERARGS[13]="-geometry 1600x900"

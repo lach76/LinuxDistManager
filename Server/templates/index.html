@@ -1,0 +1,59 @@
+<html>
+    <style type="text/css">
+        .tg  {border-collapse:collapse;border-spacing:0;border-color:#aabcfe;}
+        .tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:dashed;border-width:1px;overflow:hidden;word-break:normal;border-color:#aabcfe;color:#669;background-color:#e8edff;}
+        .tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color: #769ffe;color:#039;background-color:#b9c9fe;}
+        .tg .tg-7geq{font-weight:bold;background-color:#ffffc7;text-align:center;vertical-align:middle}
+        .tg .tg-yw4l{vertical-align:middle;text-align:center;font-size:12px}
+        .tg .tg-col1{color:#039;background-color: #aabcfe;vertical-align:middle;font-weight:bold;text-align:center}
+    </style>
+
+    <head>
+        <title>{{ title }}</title>
+        <script>
+            setInterval(function() {
+                location.reload()
+            }, 10000);
+        </script>
+    </head>
+    <body>
+        <h3>Build Server Monitor Page</h3>
+
+        <table class="tg">
+            <tr>
+                <td class="tg-yw4l"><a href="/user">user view </td>
+            </tr>
+        </table>
+
+        <table class="tg">
+        <tr>
+            <th class="tg-7geq">Host Name</th>
+            <th class="tg-7geq">Distribution</th>
+            <th class="tg-7geq">Template</th>
+            <th class="tg-7geq">IP Address</th>
+            <th class="tg-7geq">HW Address</th>
+            <th class="tg-7geq">Memory(MB)</th>
+            <th class="tg-7geq">Disk(GB)</th>
+            <th class="tg-7geq">CPU</th>
+            <th class="tg-7geq">Users</th>
+            <th class="tg-7geq">Sessions</th>
+            <th class="tg-7geq">Packages(add/remove)</th>
+        </tr>
+            {% for post in posts %}
+                <tr>
+                    <td class="tg-col1"><a href="{{ post.url }}">{{ post.hostname }}</td>
+                    <td class="tg-yw4l">{{ post.distribution }}</td>
+                    <td class="tg-yw4l">{{ post.template }}</td>
+                    <td class="tg-yw4l"><a href="chrome-extension://pnhechapfaindjhompbnflcldabbghjo/html/nassh.html#humax@{{ post.ipaddr }}:22">{{ post.ipaddr }}</td>
+                    <td class="tg-yw4l">{{ post.hwaddr }}</td>
+                    <td class="tg-yw4l">{{ post.memory }}</td>
+                    <td class="tg-yw4l">{{ post.disk }}</td>
+                    <td class="tg-yw4l">{{ post.cpu }}</td>
+                    <td class="tg-yw4l">{{ post.users }}</td>
+                    <td class="tg-yw4l">{{ post.sessions }}</td>
+                    <td class="tg-yw4l">{{ post.pack_added }} / {{ post.pack_removed }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
