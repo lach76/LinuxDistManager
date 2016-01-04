@@ -29,6 +29,7 @@ def addVMtoManagedList(json):
     vminfo = {'VMInfo' : [host_name, ipaddr, hwaddr, dist_name, dist_arch, template_name], 'lastupdate':time.time()}
     vmmInfos[hwaddr] = vminfo
 
+@app.route('/messages', methods=['POST'])
 @app.route('/register', methods = ['POST'])
 def api_message():
 
