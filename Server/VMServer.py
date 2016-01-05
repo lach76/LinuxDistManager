@@ -170,6 +170,7 @@ def usageinfo(hwaddr):
 
         startDate += timedelta
 
+    usagesList.reverse()
     users = {}
     if lastUsageInfos.has_key(hwaddr):
         userinfo = lastUsageInfos[hwaddr]['users']
