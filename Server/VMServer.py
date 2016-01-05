@@ -246,4 +246,4 @@ if __name__ == "__main__":
     mainThread.daemon = True
     mainThread.start()
 
-    app.run(debug=True, host="0.0.0.0", port=5010)
+    app.run(debug=False, host="0.0.0.0", port=5010)
