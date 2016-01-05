@@ -53,12 +53,10 @@ def api_message():
             u'users': {u'kimjh': [[u'localhost', u':0'], [u'localhost', u'pts/0'], [u'localhost', u'pts/12'], [u'localhost', u'pts/15']], u'nobody': [], u'test_account': []}}}
 """
 real_path = None
+
 def updateUsageInfos(now, usageInfos):
     global real_path
     global vmmInfos
-
-    if real_path is None:
-        real_path = os.path.dirname(os.path.realpath(__file__))
 
     subpath = "%04d%02d%02d" % (now.year, now.month, now.day)
     subpath = os.path.join(real_path, subpath)
@@ -137,6 +135,55 @@ def mainThread():
         time.sleep(5)
     pass
 
+@app.route('/usageinfo/<hwaddr>')
+def usageinfo(hwaddr):
+    global vmmInfos
+    global lastUsageInfos
+
+    hostname = vmmInfos[hwaddr]['VMInfo'][0]
+    filename = "%s-%s.csv" % (hostname, hwaddr.replace(':', '_'))
+
+    now = datetime.datetime.now()
+    startDate = now - datetime.timedelta(days=6)
+    timedelta = datetime.timedelta(days=1)
+
+    usagesList = []
+    for day in range(7):
+        subpath = "%04d%02d%02d" % (startDate.year, startDate.month, startDate.day)
+        subpath = os.path.join(real_path, subpath)
+        if os.path.isdir(subpath):
+            csvname = os.path.join(subpath, filename)
+            with open(csvname, "r") as file:
+                lines = file.readlines()
+                del lines[0]
+                lines = map(lambda s: s.strip(), lines)
+                for line in lines:
+                    lineitem = line.split('|')
+                    time = "%02d/%02d %s" % (startDate.month, startDate.day, lineitem[0])
+                    memory = "%d/%d (MB)" % (int(lineitem[1]) >> 20, int(lineitem[3]) >> 20)
+                    disk = "%d/%d (GB)" % (int(lineitem[4]) >> 30, int(lineitem[6]) >> 30)
+                    cpu = "%3.1f %%" % (100.0 - float(lineitem[9]))
+                    users = lineitem[13]
+                    session = lineitem[14]
+                    usage = {"time":time, "memory":memory, 'storage':disk, 'cpu':cpu, 'users':users, 'sessions':session}
+                    usagesList.append(usage)
+
+        startDate += timedelta
+
+    users = {}
+    if lastUsageInfos.has_key(hwaddr):
+        userinfo = lastUsageInfos[hwaddr]['users']
+        totalusers = ""
+        connectedUser = ""
+        for user, value in userinfo.items():
+            totalusers += user + ' '
+            if len(value) > 0:
+                connectedUser += "%s(%d) " % (user, len(value))
+
+        users = {'registered' : totalusers, 'connected' : connectedUser}
+
+    return flask.render_template('VMInfoSeries.html', title = 'VM Usage Information', usageslist = usagesList, user = users)
+
 @app.route('/')
 @app.route('/index')
 def index():
@@ -150,6 +197,7 @@ def index():
         vminfo['hostname'] = VMInfo[0]
         vminfo['ipaddr'] = VMInfo[1]
         vminfo['hwaddr'] = VMInfo[2]
+        vminfo['url'] = '/usageinfo/' + vminfo['hwaddr']
         vminfo['distribution'] = VMInfo[3] + '(%s)' % VMInfo[4]
         vminfo['template'] = VMInfo[5]
 
@@ -191,6 +239,9 @@ MonitorTitle = """
 """
 
 if __name__ == "__main__":
+    if real_path is None:
+        real_path = os.path.dirname(os.path.realpath(__file__))
+
     mainThread = threading.Thread(target=mainThread)
     mainThread.daemon = True
     mainThread.start()

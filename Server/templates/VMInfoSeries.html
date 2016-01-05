@@ -1,0 +1,51 @@
+<html>
+    <style type="text/css">
+        .tg  {border-collapse:collapse;border-spacing:0;border-color:#aabcfe;}
+        .tg td{font-family:Arial, sans-serif;font-size:10px;padding:5px 5px;border-style:dashed;border-width:1px;overflow:hidden;word-break:normal;border-color:#aabcfe;color:#669;background-color:#e8edff;}
+        .tg th{font-family:Arial, sans-serif;font-size:12px;font-weight:normal;padding:5px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color: #769ffe;color:#039;background-color:#b9c9fe;}
+        .tg .tg-7geq{font-weight:bold;background-color:#ffffc7;text-align:center;vertical-align:middle}
+        .tg .tg-yw4l{vertical-align:middle;text-align:center;font-size:12px}
+        .tg .tg-col1{color:#039;background-color: #aabcfe;vertical-align:middle;font-weight:bold;text-align:center}
+    </style>
+
+    <head>
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        <h2>{{ title }}</h2>
+        <h3> User Info </h3>
+        <table class="tg">
+            <tr>
+                <td class="tg-7geq">Registered User List </td>
+                <td class="tg-yw4l">{{ user.registered }}</td>
+            </tr>
+            <tr>
+                <td class="tg-7geq">Connected User List </td>
+                <td class="tg-yw4l">{{ user.connected }}</td>
+            </tr>
+        </table>
+
+        <h3>System Performance</h3>
+        <table class="tg">
+            <tr>
+                <th class="tg-7geq">DateTime</th>
+                <th class="tg-7geq">CPU</th>
+                <th class="tg-7geq">Memory</th>
+                <th class="tg-7geq">Storage</th>
+                <th class="tg-7geq">Registered Users</th>
+                <th class="tg-7geq">Conected Session</th>
+            </tr>
+
+            {% for usage in usageslist %}
+                <tr>
+                    <td class="tg-yw4l">{{ usage.time }}</td>
+                    <td class="tg-yw4l">{{ usage.cpu }}</td>
+                    <td class="tg-yw4l">{{ usage.memory }}</td>
+                    <td class="tg-yw4l">{{ usage.storage }}</td>
+                    <td class="tg-yw4l">{{ usage.users }}</td>
+                    <td class="tg-yw4l">{{ usage.sessions }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
