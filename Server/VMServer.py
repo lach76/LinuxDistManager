@@ -9,7 +9,7 @@ import subprocess
 
 app = flask.Flask(__name__)
 
-USAGE_UPDATE_TIMER = 1      #   minute
+USAGE_UPDATE_TIMER = 5      #   minute
 vmmInfos = {}
 lastUsageInfos = {}
 
