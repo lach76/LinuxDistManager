@@ -10,6 +10,8 @@
 
     <head>
         <title>{{ title }}</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <script src="http://code.highcharts.com/highcharts.js"></script>
     </head>
     <body>
         <h2>{{ title }}</h2>
@@ -24,6 +26,20 @@
                 <td class="tg-yw4l">{{ user.connected }}</td>
             </tr>
         </table>
+
+        <h3>Connections</h3>
+
+            <div id={{ chart.chartID|safe }} class="chart"></div>
+            <script>
+                var chart_id = {{ chart.chartID|safe }}
+                var series = {{ chart.series|safe }}
+                var title = {{ chart.title|safe }}
+                var xAxis = {{ chart.xAxis|safe }}
+                var yAxis = {{ chart.yAxis|safe }}
+                var chart = {{ chart.chart|safe }}
+            </script>
+
+        <script src="../static/js/main.js"></script>
 
         <h3>System Performance</h3>
         <table class="tg">
@@ -47,5 +63,6 @@
                 </tr>
             {% endfor %}
         </table>
+
     </body>
 </html>

@@ -15,6 +15,7 @@ lastUsageInfos = {}
 
 def addVMtoManagedList(json):
     global vmmInfos
+    global lastUsageInfos
 
     dist_name = ' '.join(json['machine'][:-1])
     dist_arch = json['machine'][-1]
@@ -26,11 +27,18 @@ def addVMtoManagedList(json):
     ipaddr = json['network'][0]
     hwaddr = json['network'][1]
 
+    bForcedUpdate = False
     if not vmmInfos.has_key(hwaddr):
         vmmInfos[hwaddr] = {}
+        bForcedUpdate = True
 
     vminfo = {'VMInfo' : [host_name, ipaddr, hwaddr, dist_name, dist_arch, template_name], 'lastupdate':time.time()}
     vmmInfos[hwaddr] = vminfo
+
+    if bForcedUpdate:
+        usageInfos = retrieveAllUsageInfo(hwaddr)
+        updateUsageInfos(datetime.datetime.now(), usageInfos)
+        lastUsageInfos[hwaddr] = usageInfos[hwaddr]
 
 @app.route('/messages', methods=['POST'])
 @app.route('/register', methods = ['POST'])
@@ -70,13 +78,18 @@ def updateUsageInfos(now, usageInfos):
         writeData = map(str, value['mem']) + map(str, value['disk']) + map(str, value['cpu'])
         writeData.append(str(len(value['users'].keys())))
         sessions = 0
+        connectedUser = 0
         for user, value in value['users'].items():
             sessions += len(value)
+            if len(value) > 0:
+                connectedUser += 1
+
         writeData.append(str(sessions))
+        writeData.append(str(connectedUser))
 
         if not os.path.isfile(filename):
             with open(filename, "w") as file:
-                file.write("Time|MemUsed|MemFree|MemTotal|DiskUsed|DiskFree|DiskTotal|CPUUsed(SYS)|CPUUsed(User)|CPUUsed(IDLE)|CPUUsed(IOWAIT)|CPUUsed(IRQ)|CPUUsed(SIRQ)|REGUser|ConnectedSessions\n")
+                file.write("Time|MemUsed|MemFree|MemTotal|DiskUsed|DiskFree|DiskTotal|CPUUsed(SYS)|CPUUsed(User)|CPUUsed(IDLE)|CPUUsed(IOWAIT)|CPUUsed(IRQ)|CPUUsed(SIRQ)|REGUser|ConnectedSessions|ConnectedUsers\n")
 
         with open(filename, "a") as file:
             file.write('%02d%02d|' % (now.hour, now.minute))
@@ -93,16 +106,17 @@ def curlTrigger(usageUrl, hwaddr, resultDict):
 
     resultDict[hwaddr] = json.loads(result)
 
-def retrieveAllUsageInfo():
+def retrieveAllUsageInfo(target_addr = None):
     global vmmInfos
 
     resultDict = {}
     callThreadList = []
     for hwaddr, value in vmmInfos.items():
-        usageUrl = 'http://%s:5009/api/usage' % str(value['VMInfo'][1])
-        callThread = threading.Thread(target=curlTrigger, args=(usageUrl, hwaddr, resultDict, ))
-        callThreadList.append(callThread)
-        callThread.start()
+        if (target_addr is None) or (target_addr == hwaddr):
+            usageUrl = 'http://%s:5009/api/usage' % str(value['VMInfo'][1])
+            callThread = threading.Thread(target=curlTrigger, args=(usageUrl, hwaddr, resultDict, ))
+            callThreadList.append(callThread)
+            callThread.start()
 
     for thread in callThreadList:
         thread.join()
@@ -140,12 +154,21 @@ def usageinfo(hwaddr):
     global vmmInfos
     global lastUsageInfos
 
+    if not vmmInfos.has_key(hwaddr):
+        return ""
+
     hostname = vmmInfos[hwaddr]['VMInfo'][0]
     filename = "%s-%s.csv" % (hostname, hwaddr.replace(':', '_'))
 
     now = datetime.datetime.now()
     startDate = now - datetime.timedelta(days=6)
     timedelta = datetime.timedelta(days=1)
+
+    # chart info
+    chart_timeline = []
+    chart_registered = []
+    chart_connected = []
+    chart_sessions = []
 
     usagesList = []
     for day in range(7):
@@ -159,14 +182,21 @@ def usageinfo(hwaddr):
                 lines = map(lambda s: s.strip(), lines)
                 for line in lines:
                     lineitem = line.split('|')
+                    if len(lineitem) < 16:
+                        lineitem.append(lineitem[13])
                     time = "%02d/%02d %s" % (startDate.month, startDate.day, lineitem[0])
                     memory = "%d/%d (MB)" % (int(lineitem[1]) >> 20, int(lineitem[3]) >> 20)
                     disk = "%d/%d (GB)" % (int(lineitem[4]) >> 30, int(lineitem[6]) >> 30)
                     cpu = "%3.1f %%" % (100.0 - float(lineitem[9]))
-                    users = lineitem[13]
+                    users = "%s / %s" % (lineitem[15], lineitem[13])
                     session = lineitem[14]
                     usage = {"time":time, "memory":memory, 'storage':disk, 'cpu':cpu, 'users':users, 'sessions':session}
                     usagesList.append(usage)
+
+                    chart_timeline.append("%02d/%02d %s:%s" % (startDate.month, startDate.day, lineitem[0][:2], lineitem[0][2:]))
+                    chart_registered.append(int(lineitem[13]))
+                    chart_connected.append(int(lineitem[15]))
+                    chart_sessions.append(int(lineitem[14]))
 
         startDate += timedelta
 
@@ -183,7 +213,18 @@ def usageinfo(hwaddr):
 
         users = {'registered' : totalusers, 'connected' : connectedUser}
 
-    return flask.render_template('VMInfoSeries.html', title = 'VM Usage Information', usageslist = usagesList, user = users)
+    ## Chart
+    xstep = 10
+    chartinfo = {"renderTo": 'chart_ID', "type": 'line', "height": 300,}
+    title = {"text": ''}
+    yAxis = {"title":{"text" : "User connected"}}
+    xAxis = {"categories":chart_timeline[::xstep]}
+    series = [{"name":"Registered User", "data":chart_registered[::xstep]},
+              {"name":"Connected User", "data":chart_connected[::xstep]},
+              {"name":"Connected Sessions", "data":chart_sessions[::xstep]}]
+    chart = {"chartID":"chart_ID", "chart":chartinfo, "series":series, "title":title, "xAxis":xAxis, "yAxis":yAxis}
+
+    return flask.render_template('VMInfoSeries.html', title = 'VM Usage Information', usageslist = usagesList, user = users, chart = chart)
 
 @app.route('/')
 @app.route('/index')
@@ -247,4 +288,4 @@ if __name__ == "__main__":
     mainThread.daemon = True
     mainThread.start()
 
-    app.run(debug=False, host="0.0.0.0", port=5010)
+    app.run(debug=True, host="0.0.0.0", port=5010)
