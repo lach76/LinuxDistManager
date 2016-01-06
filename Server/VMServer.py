@@ -346,6 +346,10 @@ def index():
 
             vminfo['users'] = "%d/%d" % (connectedUser, totalUser)
             vminfo['sessions'] = "%d(%d)" % (sessions - idlecount, sessions)
+            if (sessions - idlecount) == 0:
+                vminfo['used'] = False
+            else:
+                vminfo['used'] = True
 
         postinfo.append(vminfo)
 

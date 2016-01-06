@@ -5,6 +5,7 @@
         .tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color: #769ffe;color:#039;background-color:#b9c9fe;}
         .tg .tg-7geq{font-weight:bold;background-color:#ffffc7;text-align:center;vertical-align:middle}
         .tg .tg-yw4l{vertical-align:middle;text-align:center;font-size:12px}
+        .tg .tg-yw4le{background-color: #fe020f;vertical-align:middle;text-align:center;font-size:12px}
         .tg .tg-col1{color:#039;background-color: #aabcfe;vertical-align:middle;font-weight:bold;text-align:center}
     </style>
 
@@ -43,7 +44,11 @@
                     <td class="tg-yw4l">{{ post.disk }}</td>
                     <td class="tg-yw4l">{{ post.cpu }}</td>
                     <td class="tg-yw4l">{{ post.users }}</td>
-                    <td class="tg-yw4l">{{ post.sessions }}</td>
+                    {%  if post.used %}
+                        <td class="tg-yw4l">{{ post.sessions }}</td>
+                    {%  else %}
+                        <td class="tg-yw4le">{{ post.sessions }}</td>
+                    {%  endif %}
                 </tr>
             {% endfor %}
         </table>
