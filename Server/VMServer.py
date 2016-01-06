@@ -150,7 +150,8 @@ def mainThread():
     pass
 
 @app.route('/usageinfo/<hwaddr>')
-def usageinfo(hwaddr):
+@app.route('/usageinfo/<hwaddr>/<int:step>')
+def usageinfo(hwaddr, step = 6):
     global vmmInfos
     global lastUsageInfos
 
@@ -214,7 +215,7 @@ def usageinfo(hwaddr):
         users = {'registered' : totalusers, 'connected' : connectedUser}
 
     ## Chart
-    xstep = 10
+    xstep = step       # xstep * 5 min
     chartinfo = {"renderTo": 'chart_ID', "type": 'line', "height": 300,}
     title = {"text": ''}
     yAxis = {"title":{"text" : "User connected"}}
