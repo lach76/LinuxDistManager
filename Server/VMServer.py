@@ -338,8 +338,14 @@ def index():
                     connectedUser += 1
                 sessions += len(value)
 
+            if usageInfo.has_key('idle'):
+                idlelist = usageInfo['idle']
+                idlecount = len(idlelist)
+            else:
+                idlecount = 0
+
             vminfo['users'] = "%d/%d" % (connectedUser, totalUser)
-            vminfo['sessions'] = "%d" % sessions
+            vminfo['sessions'] = "%d(%d)" % (sessions - idlecount, sessions)
 
         postinfo.append(vminfo)
 
