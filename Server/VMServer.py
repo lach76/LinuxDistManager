@@ -9,9 +9,10 @@ import subprocess
 
 app = flask.Flask(__name__)
 
-USAGE_UPDATE_TIMER = 5      #   minute
+USAGE_UPDATE_TIMER = 5  # minute
 vmmInfos = {}
 lastUsageInfos = {}
+
 
 def addVMtoManagedList(json):
     global vmmInfos
@@ -32,7 +33,7 @@ def addVMtoManagedList(json):
         vmmInfos[hwaddr] = {}
         bForcedUpdate = True
 
-    vminfo = {'VMInfo' : [host_name, ipaddr, hwaddr, dist_name, dist_arch, template_name], 'lastupdate':time.time()}
+    vminfo = {'VMInfo': [host_name, ipaddr, hwaddr, dist_name, dist_arch, template_name], 'lastupdate': time.time()}
     vmmInfos[hwaddr] = vminfo
 
     if bForcedUpdate:
@@ -40,10 +41,45 @@ def addVMtoManagedList(json):
         updateUsageInfos(datetime.datetime.now(), usageInfos)
         lastUsageInfos[hwaddr] = usageInfos[hwaddr]
 
-@app.route('/messages', methods=['POST'])
-@app.route('/register', methods = ['POST'])
-def api_message():
 
+def processCommand(cmdDict):
+    global vmmInfos
+
+    cmdList = cmdDict['command']
+    cmdJson = {"command": cmdList}
+
+    output = []
+    for hwaddr, value in vmmInfos.items():
+        if len(cmdDict['target']) > 0:
+            if hwaddr not in cmdDict['target']:
+                continue
+
+        ipaddr = vmmInfos[hwaddr]['VMInfo'][1]
+        url = "http://%s:5009/api/command" % ipaddr
+        try:
+            outputdata = subprocess.check_output(
+                ['curl', '-s', '-H', 'Content-type: application/json', '-X', 'GET', url, '-d', "%s" % json.dumps(cmdJson)])
+            outputlist = outputdata.splitlines()
+            output.append(outputlist)
+        except:
+            output.append(["Fail"])
+
+    return {"result":output}
+
+
+@app.route('/api/command', methods=['GET'])
+def command_runner():
+    if flask.request.headers['Content-Type'] == 'application/json':
+        # {"command":[], "target":["hwaddr", ...]}
+        # if target is Empty, command will be broadcasted
+        return flask.jsonify(processCommand(flask.request.json))
+
+    return flask.jsonify({})
+
+
+@app.route('/messages', methods=['POST'])
+@app.route('/register', methods=['POST'])
+def api_message():
     if flask.request.headers['Content-Type'] == 'application/json':
         # {"machine": ["Ubuntu", "14.04", "trusty", "x86_64"], "hostname": "stbtester", "network": ["192.168.0.23", "b8:ac:6f:82:e1:d9"], "template": "Ubuntu12045x64_XXXX\n"}
         addVMtoManagedList(flask.request.json)
@@ -51,6 +87,7 @@ def api_message():
 
     else:
         return "415 Unsupported Media Type ;)"
+
 
 """
     usageInfos =
@@ -61,6 +98,7 @@ def api_message():
             u'users': {u'kimjh': [[u'localhost', u':0'], [u'localhost', u'pts/0'], [u'localhost', u'pts/12'], [u'localhost', u'pts/15']], u'nobody': [], u'test_account': []}}}
 """
 real_path = None
+
 
 def updateUsageInfos(now, usageInfos):
     global real_path
@@ -101,7 +139,8 @@ def updateUsageInfos(now, usageInfos):
 
         if not os.path.isfile(filename):
             with open(filename, "w") as file:
-                file.write("Time|MemUsed|MemFree|MemTotal|DiskUsed|DiskFree|DiskTotal|CPUUsed(SYS)|CPUUsed(User)|CPUUsed(IDLE)|CPUUsed(IOWAIT)|CPUUsed(IRQ)|CPUUsed(SIRQ)|REGUser|ConnectedSessions|ConnectedUsers|IdleSessions\n")
+                file.write(
+                    "Time|MemUsed|MemFree|MemTotal|DiskUsed|DiskFree|DiskTotal|CPUUsed(SYS)|CPUUsed(User)|CPUUsed(IDLE)|CPUUsed(IOWAIT)|CPUUsed(IRQ)|CPUUsed(SIRQ)|REGUser|ConnectedSessions|ConnectedUsers|IdleSessions\n")
 
         with open(filename, "a") as file:
             file.write('%02d%02d|' % (now.hour, now.minute))
@@ -109,6 +148,7 @@ def updateUsageInfos(now, usageInfos):
             file.write("\n")
 
     pass
+
 
 def curlTrigger(usageUrl, hwaddr, resultDict):
     try:
@@ -118,7 +158,8 @@ def curlTrigger(usageUrl, hwaddr, resultDict):
 
     resultDict[hwaddr] = json.loads(result)
 
-def retrieveAllUsageInfo(target_addr = None):
+
+def retrieveAllUsageInfo(target_addr=None):
     global vmmInfos
 
     resultDict = {}
@@ -126,7 +167,7 @@ def retrieveAllUsageInfo(target_addr = None):
     for hwaddr, value in vmmInfos.items():
         if (target_addr is None) or (target_addr == hwaddr):
             usageUrl = 'http://%s:5009/api/usage' % str(value['VMInfo'][1])
-            callThread = threading.Thread(target=curlTrigger, args=(usageUrl, hwaddr, resultDict, ))
+            callThread = threading.Thread(target=curlTrigger, args=(usageUrl, hwaddr, resultDict,))
             callThreadList.append(callThread)
             callThread.start()
 
@@ -134,6 +175,7 @@ def retrieveAllUsageInfo(target_addr = None):
         thread.join()
 
     return resultDict
+
 
 def mainThread():
     global vmmInfos
@@ -151,7 +193,7 @@ def mainThread():
             updateUsageInfos(now, usageInfos)
             lastUsageInfos = usageInfos
 
-        if minute % 10 == 0:        # remove unused VMMInfo per 10Minutes
+        if minute % 10 == 0:  # remove unused VMMInfo per 10Minutes
             curr_time = time.time()
             for hwaddr, value in vmmInfos.items():
                 timegap = curr_time - value['lastupdate']
@@ -161,9 +203,10 @@ def mainThread():
         time.sleep(5)
     pass
 
+
 @app.route('/usageinfo/<hwaddr>')
 @app.route('/usageinfo/<hwaddr>/<int:step>')
-def usageinfo(hwaddr, step = 60):
+def usageinfo(hwaddr, step=60):
     global vmmInfos
     global lastUsageInfos
 
@@ -207,10 +250,12 @@ def usageinfo(hwaddr, step = 60):
                     cpu = "%3.1f %%" % (100.0 - float(lineitem[9]))
                     users = "%s / %s" % (lineitem[15], lineitem[13])
                     session = lineitem[14]
-                    usage = {"time":time, "memory":memory, 'storage':disk, 'cpu':cpu, 'users':users, 'sessions':session, 'idlesessions':lineitem[16]}
+                    usage = {"time": time, "memory": memory, 'storage': disk, 'cpu': cpu, 'users': users,
+                             'sessions': session, 'idlesessions': lineitem[16]}
                     usagesList.append(usage)
 
-                    chart_timeline.append("%02d/%02d %s:%s" % (startDate.month, startDate.day, lineitem[0][:2], lineitem[0][2:]))
+                    chart_timeline.append(
+                        "%02d/%02d %s:%s" % (startDate.month, startDate.day, lineitem[0][:2], lineitem[0][2:]))
                     chart_registered.append(int(lineitem[13]))
                     chart_connected.append(int(lineitem[15]))
                     chart_sessions.append(int(lineitem[14]))
@@ -222,7 +267,7 @@ def usageinfo(hwaddr, step = 60):
 
         startDate += timedelta
 
-    xstep = max((step / 5), 1)       # step is minute
+    xstep = max((step / 5), 1)  # step is minute
 
     usagesList.reverse()
     usagesList = usagesList[::xstep]
@@ -237,21 +282,24 @@ def usageinfo(hwaddr, step = 60):
             if len(value) > 0:
                 connectedUser += "%s(%d) " % (user, len(value))
 
-        users = {'registered' : totalusers, 'connected' : connectedUser}
+        users = {'registered': totalusers, 'connected': connectedUser}
 
     ## Chart
-    chartinfo = {"renderTo": 'chart_ID', "type": 'line', "height": 300,}
+    chartinfo = {"renderTo": 'chart_ID', "type": 'line', "height": 300, }
     title = {"text": ''}
-    yAxis = {"title":{"text" : "User connected"}}
-    xAxis = {"categories":chart_timeline[::xstep]}
-    series = [{"name":"Registered User", "data":chart_registered[::xstep]},
-              {"name":"Connected User", "data":chart_connected[::xstep]},
-              {"name":"Connected Sessions", "data":chart_sessions[::xstep]},
-              {"name":"Idle Sessions", "data":chart_idlesessions[::xstep]},
-              {"name":"Run Sessions", "data":chart_runsessions[::xstep]}]
-    chart = {"chartID":"chart_ID", "chart":chartinfo, "series":series, "title":title, "xAxis":xAxis, "yAxis":yAxis}
+    yAxis = {"title": {"text": "User connected"}}
+    xAxis = {"categories": chart_timeline[::xstep]}
+    series = [{"name": "Registered User", "data": chart_registered[::xstep]},
+              {"name": "Connected User", "data": chart_connected[::xstep]},
+              {"name": "Connected Sessions", "data": chart_sessions[::xstep]},
+              {"name": "Idle Sessions", "data": chart_idlesessions[::xstep]},
+              {"name": "Run Sessions", "data": chart_runsessions[::xstep]}]
+    chart = {"chartID": "chart_ID", "chart": chartinfo, "series": series, "title": title, "xAxis": xAxis,
+             "yAxis": yAxis}
 
-    return flask.render_template('VMInfoSeries.html', title = 'VM Usage Information', usageslist = usagesList, user = users, chart = chart)
+    return flask.render_template('VMInfoSeries.html', title='VM Usage Information', usageslist=usagesList, user=users,
+                                 chart=chart)
+
 
 @app.route('/')
 @app.route('/index')
@@ -296,8 +344,9 @@ def index():
         postinfo.append(vminfo)
 
     return flask.render_template('index2.html',
-                           title='Build Server Management',
-                           posts=postinfo)
+                                 title='Build Server Management',
+                                 posts=postinfo)
+
 
 MonitorTitle = """
 +-------------------------------------------------------+
