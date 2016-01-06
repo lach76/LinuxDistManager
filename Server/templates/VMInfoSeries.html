@@ -49,7 +49,8 @@
                 <th class="tg-7geq">Memory</th>
                 <th class="tg-7geq">Storage</th>
                 <th class="tg-7geq">Registered Users</th>
-                <th class="tg-7geq">Conected Session</th>
+                <th class="tg-7geq">Connected Session</th>
+                <th class="tg-7geq">Idle Sessions</th>
             </tr>
 
             {% for usage in usageslist %}
@@ -60,6 +61,7 @@
                     <td class="tg-yw4l">{{ usage.storage }}</td>
                     <td class="tg-yw4l">{{ usage.users }}</td>
                     <td class="tg-yw4l">{{ usage.sessions }}</td>
+                    <td class="tg-yw4l">{{ usage.idlesessions }}</td>
                 </tr>
             {% endfor %}
         </table>

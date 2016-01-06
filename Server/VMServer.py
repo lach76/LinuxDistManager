@@ -207,7 +207,7 @@ def usageinfo(hwaddr, step = 60):
                     cpu = "%3.1f %%" % (100.0 - float(lineitem[9]))
                     users = "%s / %s" % (lineitem[15], lineitem[13])
                     session = lineitem[14]
-                    usage = {"time":time, "memory":memory, 'storage':disk, 'cpu':cpu, 'users':users, 'sessions':session}
+                    usage = {"time":time, "memory":memory, 'storage':disk, 'cpu':cpu, 'users':users, 'sessions':session, 'idlesessions':lineitem[16]}
                     usagesList.append(usage)
 
                     chart_timeline.append("%02d/%02d %s:%s" % (startDate.month, startDate.day, lineitem[0][:2], lineitem[0][2:]))
