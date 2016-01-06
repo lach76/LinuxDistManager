@@ -31,7 +31,7 @@ import pwd
 
 app = flask.Flask(__name__)
 
-KEEP_ALIVE_TIMER = 10
+KEEP_ALIVE_TIMER = 60
 
 def retrieveCommand(commandJson):
     if commandJson.has_key("command"):
