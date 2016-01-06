@@ -113,6 +113,22 @@ def retrieve_usageInfo():
 
         info['users'] = users
 
+        # idle user sessions
+        try:
+            output = subprocess.check_output(['w', '-hfs'])
+        except:
+            output = ""
+
+        idlelist = []
+        outlist = output.splitlines()
+        for item in outlist:
+            if 'days' in item:
+                itemlist = item.split()
+                idle = {"user":itemlist[0], "pts":itemlist[1], "idle":itemlist[2], "command":" ".join(itemlist[3:])}
+                idlelist.append(idle)
+
+        info['idle'] = idlelist
+
         return flask.jsonify(info)
 
     return flask.jsonify({})

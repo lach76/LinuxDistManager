@@ -79,17 +79,29 @@ def updateUsageInfos(now, usageInfos):
         writeData.append(str(len(value['users'].keys())))
         sessions = 0
         connectedUser = 0
-        for user, value in value['users'].items():
-            sessions += len(value)
-            if len(value) > 0:
+        for user, value1 in value['users'].items():
+            sessions += len(value1)
+            if len(value1) > 0:
                 connectedUser += 1
 
         writeData.append(str(sessions))
         writeData.append(str(connectedUser))
 
+        idleUserData = "0;"
+        if value.has_key('idle'):
+            idlelist = value['idle']
+            idleUserList = []
+            idleCount = len(idlelist)
+            for idle in idlelist:
+                idleUserInfo = "%s:%s:%s" % (idle['user'], idle['idle'], idle['command'])
+                idleUserList.append(idleUserInfo)
+            idleUserData = "%d;" % (idleCount) + ";".join(idleUserList)
+
+        writeData.append(idleUserData)
+
         if not os.path.isfile(filename):
             with open(filename, "w") as file:
-                file.write("Time|MemUsed|MemFree|MemTotal|DiskUsed|DiskFree|DiskTotal|CPUUsed(SYS)|CPUUsed(User)|CPUUsed(IDLE)|CPUUsed(IOWAIT)|CPUUsed(IRQ)|CPUUsed(SIRQ)|REGUser|ConnectedSessions|ConnectedUsers\n")
+                file.write("Time|MemUsed|MemFree|MemTotal|DiskUsed|DiskFree|DiskTotal|CPUUsed(SYS)|CPUUsed(User)|CPUUsed(IDLE)|CPUUsed(IOWAIT)|CPUUsed(IRQ)|CPUUsed(SIRQ)|REGUser|ConnectedSessions|ConnectedUsers|IdleSessions\n")
 
         with open(filename, "a") as file:
             file.write('%02d%02d|' % (now.hour, now.minute))
@@ -170,6 +182,8 @@ def usageinfo(hwaddr, step = 60):
     chart_registered = []
     chart_connected = []
     chart_sessions = []
+    chart_idlesessions = []
+    chart_runsessions = []
 
     usagesList = []
     for day in range(7):
@@ -185,6 +199,8 @@ def usageinfo(hwaddr, step = 60):
                     lineitem = line.split('|')
                     if len(lineitem) < 16:
                         lineitem.append(lineitem[13])
+                    if len(lineitem) < 17:
+                        lineitem.append("0;")
                     time = "%02d/%02d %s" % (startDate.month, startDate.day, lineitem[0])
                     memory = "%d/%d (MB)" % (int(lineitem[1]) >> 20, int(lineitem[3]) >> 20)
                     disk = "%d/%d (GB)" % (int(lineitem[4]) >> 30, int(lineitem[6]) >> 30)
@@ -198,6 +214,11 @@ def usageinfo(hwaddr, step = 60):
                     chart_registered.append(int(lineitem[13]))
                     chart_connected.append(int(lineitem[15]))
                     chart_sessions.append(int(lineitem[14]))
+
+                    idlelist = lineitem[16].split(';')
+                    idlecount = int(idlelist[0])
+                    chart_idlesessions.append(idlecount)
+                    chart_runsessions.append(int(lineitem[14]) - idlecount)
 
         startDate += timedelta
 
@@ -225,7 +246,9 @@ def usageinfo(hwaddr, step = 60):
     xAxis = {"categories":chart_timeline[::xstep]}
     series = [{"name":"Registered User", "data":chart_registered[::xstep]},
               {"name":"Connected User", "data":chart_connected[::xstep]},
-              {"name":"Connected Sessions", "data":chart_sessions[::xstep]}]
+              {"name":"Connected Sessions", "data":chart_sessions[::xstep]},
+              {"name":"Idle Sessions", "data":chart_idlesessions[::xstep]},
+              {"name":"Run Sessions", "data":chart_runsessions[::xstep]}]
     chart = {"chartID":"chart_ID", "chart":chartinfo, "series":series, "title":title, "xAxis":xAxis, "yAxis":yAxis}
 
     return flask.render_template('VMInfoSeries.html', title = 'VM Usage Information', usageslist = usagesList, user = users, chart = chart)
