@@ -76,6 +76,20 @@ def command_runner():
 
     return flask.jsonify({})
 
+@app.route('/api/users')
+def command_userlist():
+    global vmmInfos
+    global lastUsageInfos
+
+    result = {}
+    for hwaddr, usage in lastUsageInfos.items():
+        if vmmInfos.has_key(hwaddr):
+            ipaddr = vmmInfos[hwaddr]['VMInfo'][1]
+            hostname = vmmInfos[hwaddr]['VMInfo'][0]
+            userlist = usage['users'].keys()
+            result[hwaddr] = {"ipaddr":ipaddr, "hostname":hostname, "userlist":userlist}
+
+    return flask.jsonify(result)
 
 @app.route('/messages', methods=['POST'])
 @app.route('/register', methods=['POST'])
