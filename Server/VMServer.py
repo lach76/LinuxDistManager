@@ -217,6 +217,41 @@ def mainThread():
         time.sleep(5)
     pass
 
+@app.route('/charts/timeline')
+def chartsTimeline():
+    chartinfo = {"renderTo" : 'chart_ID', "type": 'line', "height" : 500, }
+    _title = {"text": 'VM Resource Time Line Chart'}
+    yAxis = {"title" : {"text" : "Count"}}
+    chart_data = {}
+    if os.path.isfile("./result_per_timeline.csv"):
+        with open("./result_per_timeline.csv", "r") as resultfile:
+            csvlines = resultfile.readlines()
+
+        titlelist = csvlines[0].strip().split('|')
+        for tit in titlelist:
+            chart_data[tit] = []
+
+        chart_timeline = []
+        for index, csvLine in enumerate(csvlines[1:]):
+            csvItems = csvLine.strip().split('|')
+            chart_timeline.append(csvItems[0])
+            csvItems = csvItems[1:]
+            for i, title in enumerate(titlelist[1:]):
+                chart_data[title].append(int(csvItems[i]))
+        
+        xAxis = {"categories" : chart_timeline[::5]}
+        ## Chart
+        series = []
+        for i, tit in enumerate(titlelist[1:]):
+            series.append({"name":tit, "data":chart_data[tit][::5]})
+        
+        chart = {"chartID": "chart_ID", "chart": chartinfo, "series": series, "title": _title, "xAxis": xAxis,
+                 "yAxis": yAxis}
+
+        #import pprint
+        #pprint.pprint(chart)
+
+    return flask.render_template('charts.html', chart=chart)
 
 @app.route('/usageinfo/<hwaddr>')
 @app.route('/usageinfo/<hwaddr>/<int:step>')

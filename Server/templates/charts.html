@@ -24,17 +24,16 @@
 	</head>
 
 	<body>
-        {% for post in posts %}
-            <div id={{ post.chartID|safe }} class="chart" style="height: 576px; width: 1024px"></div>
-            <script>
-                var chart_id = {{ post.chartID|safe }}
-                var series = {{ post.series|safe }}
-                var title = {{ post.title|safe }}
-                var xAxis = {{ post.xAxis|safe }}
-                var yAxis = {{ post.yAxis|safe }}
-                var chart = {{ post.chart|safe }}
-            </script>
-        {% endfor %}
-        <script src="../static/js/main.js"></script>
+        <div id={{ chart.chartID|safe }} class="chart"></div>
+        <script>
+            var chart_id = {{ chart.chartID|safe }}
+            var series = {{ chart.series|safe }}
+            var title = {{ chart.title|safe }}
+            var xAxis = {{ chart.xAxis|safe }}
+            var yAxis = {{ chart.yAxis|safe }}
+            var chart = {{ chart.chart|safe }}
+        </script>
+
+        <script src="../../static/js/main.js"></script>
 	</body>
 </html>
