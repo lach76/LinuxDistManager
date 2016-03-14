@@ -35,5 +35,8 @@
     },
     "python-pip":{
         "name":"python-pip"
+    },
+    "autoconf":{
+        "name":"autoconf"
     }
 }
